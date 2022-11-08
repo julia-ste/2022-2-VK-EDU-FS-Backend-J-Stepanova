@@ -15,7 +15,6 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 with open(BASE_DIR.joinpath('application', 'secrets.json'), 'r') as f:
     secrets = json.load(f)
-    print(secrets)
 
 SECRET_KEY = get_secret('SECRET_KEY')
 
