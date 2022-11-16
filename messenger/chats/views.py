@@ -30,8 +30,8 @@ def message_list(request, chat_pk):
 
 @require_http_methods(["POST"])
 def chat_create(request):
-    title = request.GET.get("title")
-    author_pk = request.GET.get("author")
+    title = request.POST.get("title")
+    author_pk = request.POST.get("author")
 
     author = get_object_or_404(get_user_model(), pk=author_pk)
 
@@ -45,7 +45,7 @@ def chat_create(request):
         {'created chat': chat.title},
         safe=False,
         json_dumps_params={"ensure_ascii": False},
-        status=200
+        status=201
     )
 
 
@@ -53,8 +53,8 @@ def chat_create(request):
 def message_create(request, chat_pk):
     chat = get_object_or_404(Chat, pk=chat_pk)
 
-    text = request.GET.get("text")
-    user_pk = request.GET.get("user")
+    text = request.POST.get("text")
+    user_pk = request.POST.get("user")
 
     user = get_object_or_404(get_user_model(), id=user_pk)
 
@@ -65,26 +65,33 @@ def message_create(request, chat_pk):
         {'created message': message.text},
         safe=False,
         json_dumps_params={"ensure_ascii": False},
-        status=200
+        status=201
     )
 
 
 @require_http_methods(["PATCH", "POST"])
 def chat_update(request, pk):
     chat = get_object_or_404(Chat, pk=pk)
-    chat.title = request.GET.get("title")
+    chat.title = request.POST.get("title")
     chat.save()
 
-    return JsonResponse({"updated chat title": chat.title}, status=200)
+    return JsonResponse(
+        {"updated chat title": chat.title},
+        status=200
+    )
 
 
 @require_http_methods(["PATCH", "POST"])
 def message_update(request, pk):
     message = get_object_or_404(Message, pk=pk)
-    message.text = request.GET.get("text")
+    message.text = request.POST.get("text")
     message.save()
 
-    return JsonResponse({"updated message": message.text}, safe=False, status=200)
+    return JsonResponse(
+        {"updated message": message.text},
+        safe=False,
+        status=200
+    )
 
 
 @require_http_methods(["GET"])
@@ -113,11 +120,19 @@ def message_detail(request, pk):
 def chat_delete(request, pk):
     chat = get_object_or_404(Chat, pk=pk)
     chat.delete()
-    return JsonResponse({"deleted chat": chat.title}, safe=False, status=200)
+    return JsonResponse(
+        {"deleted chat": chat.title},
+        safe=False,
+        status=200
+    )
 
 
 @require_http_methods(["DELETE", "POST"])
 def message_delete(request, pk):
     message = get_object_or_404(Message, pk=pk)
     message.delete()
-    return JsonResponse({"deleted message": message.text}, safe=False, status=200)
+    return JsonResponse(
+        {"deleted message": message.text},
+        safe=False,
+        status=200
+    )
