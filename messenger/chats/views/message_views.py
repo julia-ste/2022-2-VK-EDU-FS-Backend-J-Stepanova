@@ -80,7 +80,7 @@ def message_delete(request, pk):
 
 
 @require_http_methods(["PATCH", "POST"])
-def message_delete(request, pk):
+def message_read(request, pk):
     message = get_object_or_404(Message, pk=pk)
     message.is_read = True
     message.save()

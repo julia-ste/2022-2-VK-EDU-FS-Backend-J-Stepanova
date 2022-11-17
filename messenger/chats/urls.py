@@ -17,5 +17,5 @@ urlpatterns = [
     path("messages/detail/<int:pk>", message_views.message_detail, name="message_detail"),
     path("messages/update/<int:pk>", message_views.message_update, name="message_update"),
     path("messages/delete/<int:pk>", message_views.message_delete, name="message_delete"),
-    path("messages/read/<int:pk>", message_views.message_delete, name="message_read"),
+    path("messages/read/<int:pk>", message_views.message_read, name="message_read"),
 ]
