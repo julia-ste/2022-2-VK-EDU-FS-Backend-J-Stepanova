@@ -3,5 +3,5 @@ from django.urls import path
 from .views import UserDetail
 
 urlpatterns = [
-    path('<int:pk>/', UserDetail.as_view(), name='user_detail'),
+    path("<int:pk>/", UserDetail.as_view(), name="user_detail"),
 ]
