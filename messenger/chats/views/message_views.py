@@ -1,6 +1,6 @@
 from django.contrib.auth import get_user_model
 from django.forms import model_to_dict
-from django.http import JsonResponse
+from django.http import JsonResponse, Http404
 from django.shortcuts import get_object_or_404
 from django.views.decorators.http import require_http_methods
 
@@ -29,8 +29,11 @@ def message_create(request, chat_pk):
     user = get_object_or_404(get_user_model(), id=user_pk)
 
     message_params = get_params(request.POST, excluded=["user"])
+    text = message_params.get("text")
+    if text is None or not text.strip():
+        raise Http404("Text of message cannot be empty!")
+
     message = Message.objects.create(chat=chat, author=user, **message_params)
-    message.save()
 
     return JsonResponse(
         model_to_dict(message),
@@ -43,7 +46,11 @@ def message_create(request, chat_pk):
 def message_update(request, pk):
     message = get_object_or_404(Message, pk=pk)
 
-    message_params = get_params(request.POST, excluded=["user"])
+    message_params = get_params(request.POST)
+    text = message_params.get("text")
+    if text is None or not text.strip():
+        raise Http404("Text of message cannot be empty!")
+
     for key, value in message_params.items():
         setattr(message, key, value)
 

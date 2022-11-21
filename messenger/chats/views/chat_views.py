@@ -30,11 +30,13 @@ def chat_create(request):
     category = get_object_or_404(Category, pk=category_pk) if category_pk else None
 
     chat_params = get_params(request.POST, excluded=["user", "category"])
-    chat = Chat.objects.create(author=user, category=category, **chat_params)
-    chat.save()
+    title = chat_params.get("title")
+    if title is None or not title.strip():
+        raise Http404("Title of chat cannot be empty!")
 
-    chat_member = ChatMember.objects.create(chat=chat, user=user)
-    chat_member.save()
+    chat = Chat.objects.create(author=user, category=category, **chat_params)
+
+    ChatMember.objects.create(chat=chat, user=user)
 
     return JsonResponse(
         model_to_dict(chat),
@@ -51,6 +53,10 @@ def chat_update(request, pk):
     category = get_object_or_404(Category, pk=category_pk) if category_pk else None
 
     chat_params = get_params(request.POST, excluded=["user", "category"])
+    title = chat_params.get("title")
+    if title is not None and not title.strip():
+        raise Http404("Title of chat cannot be empty!")
+
     chat_params["category"] = category
     for key, value in chat_params.items():
         setattr(chat, key, value)
@@ -98,8 +104,7 @@ def chat_add_member(request, chat_pk):
     if chat_member:
         raise Http404(f"User {user} already in chat {chat}!")
 
-    chat_member = ChatMember.objects.create(chat=chat, user=user)
-    chat_member.save()
+    ChatMember.objects.create(chat=chat, user=user)
 
     return JsonResponse(
         {"user": str(user), "chat": str(chat)},
