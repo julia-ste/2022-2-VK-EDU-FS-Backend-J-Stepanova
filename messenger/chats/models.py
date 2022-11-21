@@ -79,6 +79,7 @@ class Message(models.Model):
     )
     text = models.CharField("Текст", max_length=4096)
     sent_at = models.DateTimeField("Дата отправления", auto_now=True)
+    is_read = models.BooleanField("Прочитано", default=False)
 
     def __str__(self):
         return self.text
