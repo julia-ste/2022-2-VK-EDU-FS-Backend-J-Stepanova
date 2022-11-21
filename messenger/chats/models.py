@@ -35,7 +35,7 @@ class Chat(models.Model):
     )
 
     def __str__(self):
-        return self.title
+        return f"{self.title} ({self.pk})"
 
     class Meta:
         verbose_name = "Чат"

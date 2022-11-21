@@ -1,133 +1,55 @@
 from django.contrib.auth import get_user_model
-from django.forms import model_to_dict
-from django.http import JsonResponse, Http404
 from django.shortcuts import get_object_or_404
-from django.views.decorators.http import require_http_methods
 
-from chats.models import Chat, ChatMember, Category
-from utils.get_request_params import get_params
+from rest_framework import generics
+from rest_framework.permissions import IsAuthenticated
 
-
-@require_http_methods(["GET"])
-def chat_list(request, user_pk):
-    user = get_object_or_404(get_user_model(), pk=user_pk)
-    chats = user.user_chats.values("id", "title")
-
-    return JsonResponse(
-        list(chats),
-        safe=False,
-        json_dumps_params={"ensure_ascii": False},
-        status=200
-    )
+from ..models import Chat, ChatMember
+from ..serializers import ChatListSerializer, ChatMemberSerializer, ChatSerializer
 
 
-@require_http_methods(["POST"])
-def chat_create(request):
-    user_pk = request.POST.get("user")
-    user = get_object_or_404(get_user_model(), pk=user_pk)
-
-    category_pk = request.POST.get("category")
-    category = get_object_or_404(Category, pk=category_pk) if category_pk else None
-
-    chat_params = get_params(request.POST, excluded=["user", "category"])
-    title = chat_params.get("title")
-    if title is None or not title.strip():
-        raise Http404("Title of chat cannot be empty!")
-
-    chat = Chat.objects.create(author=user, category=category, **chat_params)
-
-    ChatMember.objects.create(chat=chat, user=user)
-
-    return JsonResponse(
-        model_to_dict(chat),
-        json_dumps_params={"ensure_ascii": False},
-        status=201
-    )
+class UserChatsQuerySet:
+    def get_queryset(self):
+        return Chat.objects.filter(author=self.request.user)
 
 
-@require_http_methods(["PATCH", "POST"])
-def chat_update(request, pk):
-    chat = get_object_or_404(Chat, pk=pk)
-
-    category_pk = request.POST.get("category")
-    category = get_object_or_404(Category, pk=category_pk) if category_pk else None
-
-    chat_params = get_params(request.POST, excluded=["user", "category"])
-    title = chat_params.get("title")
-    if title is not None and not title.strip():
-        raise Http404("Title of chat cannot be empty!")
-
-    chat_params["category"] = category
-    for key, value in chat_params.items():
-        setattr(chat, key, value)
-
-    chat.save()
-
-    return JsonResponse(
-        model_to_dict(chat),
-        json_dumps_params={"ensure_ascii": False},
-        status=200
-    )
+class ChatList(UserChatsQuerySet, generics.ListAPIView):
+    serializer_class = ChatListSerializer
+    permission_classes = (IsAuthenticated,)
 
 
-@require_http_methods(["GET"])
-def chat_detail(request, pk):
-    chat = get_object_or_404(Chat, pk=pk)
+class ChatCreate(generics.CreateAPIView):
+    serializer_class = ChatSerializer
+    permission_classes = (IsAuthenticated,)
 
-    return JsonResponse(
-        model_to_dict(chat),
-        json_dumps_params={"ensure_ascii": False},
-        status=200
-    )
+    def perform_create(self, serializer):
+        serializer.save(author=self.request.user)
 
 
-@require_http_methods(["DELETE", "POST"])
-def chat_delete(request, pk):
-    chat = get_object_or_404(Chat, pk=pk)
-    chat.delete()
-
-    return JsonResponse(
-        model_to_dict(chat),
-        json_dumps_params={"ensure_ascii": False},
-        status=200
-    )
+class ChatRetrieveUpdateDestroy(
+    UserChatsQuerySet, generics.RetrieveUpdateDestroyAPIView
+):
+    serializer_class = ChatSerializer
+    permission_classes = (IsAuthenticated,)
 
 
-@require_http_methods(["POST"])
-def chat_add_member(request, chat_pk):
-    user_pk = request.POST.get("user")
-    user = get_object_or_404(get_user_model(), id=user_pk)
+class ChatMemberCreate(generics.CreateAPIView):
+    serializer_class = ChatMemberSerializer
+    permission_classes = (IsAuthenticated,)
 
-    chat = get_object_or_404(Chat, pk=chat_pk)
-
-    chat_member = ChatMember.objects.filter(chat=chat, user=user).first()
-    if chat_member:
-        raise Http404(f"User {user} already in chat {chat}!")
-
-    ChatMember.objects.create(chat=chat, user=user)
-
-    return JsonResponse(
-        {"user": str(user), "chat": str(chat)},
-        json_dumps_params={"ensure_ascii": False},
-        status=200
-    )
+    def perform_create(self, serializer):
+        chat_pk = self.kwargs.get("chat_pk")
+        chat = get_object_or_404(Chat, pk=chat_pk)
+        serializer.save(chat=chat)
 
 
-@require_http_methods(["DELETE", "POST"])
-def chat_delete_member(request, chat_pk):
-    user_pk = request.POST.get("user")
-    user = get_object_or_404(get_user_model(), id=user_pk)
+class ChatMemberDestroy(generics.DestroyAPIView):
+    serializer_class = ChatMemberSerializer
+    permission_classes = (IsAuthenticated,)
+    lookup_field = "chat_id"
+    lookup_url_kwarg = "chat_pk"
 
-    chat = get_object_or_404(Chat, pk=chat_pk)
-
-    chat_member = ChatMember.objects.filter(chat=chat, user=user).first()
-    if not chat_member:
-        raise Http404(f"User {user} is not a member of chat {chat}!")
-
-    chat_member.delete()
-
-    return JsonResponse(
-        {"user": str(user), "chat": str(chat)},
-        json_dumps_params={"ensure_ascii": False},
-        status=200
-    )
+    def get_queryset(self):
+        user_pk = self.kwargs.get("user_pk")
+        user = get_object_or_404(get_user_model(), pk=user_pk)
+        return ChatMember.objects.filter(user=user)

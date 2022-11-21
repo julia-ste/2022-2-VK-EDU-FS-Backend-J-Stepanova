@@ -1,21 +1,18 @@
 from django.urls import path
 
-from chats.views import chat_views
-from chats.views import message_views
+from chats.views.chat_views import ChatRetrieveUpdateDestroy, ChatCreate, ChatList, ChatMemberCreate, ChatMemberDestroy
+from chats.views.message_views import MessageList, MessageCreate, MessageRetrieveUpdateDestroy, MessageRead
 
 urlpatterns = [
-    path("<int:user_pk>/", chat_views.chat_list, name="chat_list"),
-    path("new/", chat_views.chat_create, name="chat_create"),
-    path("detail/<int:pk>/", chat_views.chat_detail, name="chat_detail"),
-    path("update/<int:pk>/", chat_views.chat_update, name="chat_update"),
-    path("delete/<int:pk>/", chat_views.chat_delete, name="chat_delete"),
-    path("add-member/<int:chat_pk>/", chat_views.chat_add_member, name="chat_add_member"),
-    path("delete-member/<int:chat_pk>/", chat_views.chat_delete_member, name="chat_delete_member"),
+    path("", ChatList.as_view(), name="chat_list"),
+    path("new/", ChatCreate.as_view(), name="chat_create"),
+    path("<int:pk>/", ChatRetrieveUpdateDestroy.as_view(), name="chat_detail"),
 
-    path("messages/<int:chat_pk>/", message_views.message_list, name="message_list"),
-    path("messages/<int:chat_pk>/new/", message_views.message_create, name="message_create"),
-    path("messages/detail/<int:pk>", message_views.message_detail, name="message_detail"),
-    path("messages/update/<int:pk>", message_views.message_update, name="message_update"),
-    path("messages/delete/<int:pk>", message_views.message_delete, name="message_delete"),
-    path("messages/read/<int:pk>", message_views.message_read, name="message_read"),
+    path("<int:chat_pk>/members/new/", ChatMemberCreate.as_view(), name="chat_member_create"),
+    path("<int:chat_pk>/members/<int:user_pk>/", ChatMemberDestroy.as_view(), name="chat_member_delete"),
+
+    path("<int:chat_pk>/messages/", MessageList.as_view(), name="message_list"),
+    path("<int:chat_pk>/messages/new/", MessageCreate.as_view(), name="message_create"),
+    path("<int:chat_pk>/messages/<int:pk>/", MessageRetrieveUpdateDestroy.as_view(), name="message_detail"),
+    path("<int:chat_pk>/messages/<int:pk>/read/", MessageRead.as_view(), name="message_read"),
 ]
