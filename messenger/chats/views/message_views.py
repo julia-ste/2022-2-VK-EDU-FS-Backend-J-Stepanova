@@ -1,14 +1,12 @@
 from django.shortcuts import get_object_or_404
 
-from rest_framework import generics
-from rest_framework.permissions import IsAuthenticated
-
-from ..models import Chat
-from ..serializers import (
+from chats.models import Chat
+from chats.serializers import (
     MessageListSerializer,
     MessageReadSerializer,
     MessageSerializer,
 )
+from rest_framework import generics
 
 
 class ChatMessagesQuerySet:
@@ -20,12 +18,10 @@ class ChatMessagesQuerySet:
 
 class MessageList(ChatMessagesQuerySet, generics.ListAPIView):
     serializer_class = MessageListSerializer
-    permission_classes = (IsAuthenticated,)
 
 
 class MessageCreate(generics.CreateAPIView):
     serializer_class = MessageSerializer
-    permission_classes = (IsAuthenticated,)
 
     def perform_create(self, serializer):
         chat_pk = self.kwargs.get("chat_pk")
@@ -37,9 +33,7 @@ class MessageRetrieveUpdateDestroy(
     ChatMessagesQuerySet, generics.RetrieveUpdateDestroyAPIView
 ):
     serializer_class = MessageSerializer
-    permission_classes = (IsAuthenticated,)
 
 
 class MessageRead(ChatMessagesQuerySet, generics.UpdateAPIView):
     serializer_class = MessageReadSerializer
-    permission_classes = (IsAuthenticated,)

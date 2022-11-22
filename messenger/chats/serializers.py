@@ -38,8 +38,8 @@ class ChatMemberSerializer(serializers.ModelSerializer):
         user = validated_data.get("user")
         chat = validated_data.get("chat")
 
-        chat_member = ChatMember.objects.filter(chat=chat, user=user).first()
-        if chat_member:
+        is_chat_member = ChatMember.objects.filter(chat=chat, user=user).exists()
+        if is_chat_member:
             raise Http404(f"User {user} already in chat {chat}!")
 
         return ChatMember.objects.create(**validated_data)
