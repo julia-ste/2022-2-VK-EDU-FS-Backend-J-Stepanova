@@ -16,7 +16,7 @@ class ChatSerializer(serializers.ModelSerializer):
         chat = Chat.objects.create(**validated_data)
 
         user = validated_data.get("author")
-        ChatMember.objects.create(chat=chat, user=user)
+        ChatMember.objects.create(chat=chat, user=user, is_admin=True)
 
         return chat
 

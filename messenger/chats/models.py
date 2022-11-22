@@ -54,6 +54,7 @@ class ChatMember(models.Model):
         verbose_name="Пользователь"
     )
     joined_at = models.DateTimeField("Дата присоединения", auto_now=True)
+    is_admin = models.BooleanField("Админ", default=False)
 
     def __str__(self):
         return f"{self.chat} - {self.user}"
