@@ -31,9 +31,9 @@ class ChatRetrieveUpdateDestroy(
     lookup_url_kwarg = "chat_pk"
 
     def get_permissions(self):
-        if self.request.method in ['PUT', 'PATCH']:
+        if self.request.method in ["PUT", "PATCH"]:
             permission_classes = [IsChatAdmin]
-        elif self.request.method == 'DELETE':
+        elif self.request.method == "DELETE":
             permission_classes = [IsChatOwner]
         else:
             permission_classes = []
